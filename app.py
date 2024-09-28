@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for
 from werkzeug.utils import secure_filename
-from models import NFe, create_tables
+from models import NFe,Emitente, create_tables
 from xml_processor import process_all_xml_files, save_to_database
 
 app = Flask(__name__)
@@ -42,7 +42,7 @@ def upload_files():
 # Rota principal para exibir as NFes salvas
 @app.route('/')
 def index():
-    nfes = NFe.select()
+    nfes = NFe.select(NFe, Emitente).join(Emitente)
     return render_template('index.html', nfes=nfes)
 
 if __name__ == '__main__':

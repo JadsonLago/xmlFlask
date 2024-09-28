@@ -1,74 +1,121 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NFes</title>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>NFes</title>
 
-    <!-- Incluindo o DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
-    
-    <!-- Incluindo jQuery (requerido pelo DataTables) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <!-- Incluindo o DataTables CSS -->
+        <link
+            rel="stylesheet"
+            href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css"
+        />
 
-    <!-- Incluindo o DataTables JavaScript -->
-    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-    
-    <!-- Script para inicializar o DataTables -->
-    <script>
-        $(document).ready(function() {
-            $('#nfeTable').DataTable({
-            "paging": true,        // Habilita/desabilita paginação
-            "searching": true,     // Habilita/desabilita pesquisa
-            "pageLength": 10,      // Quantidade de registros por página
-            "ordering": true,      // Habilita ordenação nas colunas
-            "language": {
-            "lengthMenu": "Mostrar _MENU_ registros por página",
-            "zeroRecords": "Nenhuma nota encontrada",
-            "info": "Página _PAGE_ de _PAGES_",
-            "infoEmpty": "Sem registros disponíveis",
-            "infoFiltered": "(filtrado de _MAX_ registros no total)",
-            "search": "Buscar:",
-            "paginate": {
-                "next": "Próximo",
-                "previous": "Anterior"
-            }
-        }
-    });  // Inicializa o DataTables
-            
-        });
-    </script>
-</head>
-<body>
-    <h1>Notas Fiscais</h1>
-    
-    <!-- Formulário para upload de arquivos XML -->
-    <h2>Upload de Arquivos XML</h2>
-    <form action="/upload" method="POST" enctype="multipart/form-data">
-        <input type="file" name="xml_files" multiple>
-        <button type="submit">Fazer Upload</button>
-    </form>
+        <!-- Incluindo jQuery (requerido pelo DataTables) -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-    <!-- Tabela interativa de NFes com DataTables -->
-    <h2>Notas Fiscais Salvas</h2>
-    <table id="nfeTable" class="display">
-        <thead>
-            <tr>
-                <th>Número da Nota</th>
-                <th>Data de Emissão</th>
-                <th>Valor Total</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for nfe in nfes %}
-            <tr>
-                <td>{{ nfe.invoice_number }}</td>
-                <td>{{ nfe.issue_date }}</td>
-                <td>{{ nfe.total_value }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+        <!-- Incluindo o DataTables JavaScript -->
+        <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 
-</body>
+        <!-- Script para inicializar o DataTables -->
+        <script>
+            $(document).ready(function () {
+                $("#nfeTable").DataTable({
+                    paging: true, // Habilita/desabilita paginação
+                    searching: true, // Habilita/desabilita pesquisa
+                    pageLength: 10, // Quantidade de registros por página
+                    ordering: true, // Habilita ordenação nas colunas
+                    language: {
+                        lengthMenu: "Mostrar _MENU_ registros por página",
+                        zeroRecords: "Nenhuma nota encontrada",
+                        info: "Página _PAGE_ de _PAGES_",
+                        infoEmpty: "Sem registros disponíveis",
+                        infoFiltered: "(filtrado de _MAX_ registros no total)",
+                        search: "Buscar:",
+                        paginate: {
+                            next: "Próximo",
+                            previous: "Anterior",
+                        },
+                    },
+                    footerCallback: function (row, data, start, end, display) {
+                        var api = this.api();
+
+                        // Calcula o total em todas as páginas
+                        var total = api
+                            .column(2) // Índice da coluna "Valor Total" (começa em 0)
+                            .data()
+                            .reduce(function (a, b) {
+                                return parseFloat(a) + parseFloat(b);
+                            }, 0);
+
+                        // Calcula o total apenas na página atual
+                        var pageTotal = api
+                            .column(2, { page: "current" })
+                            .data()
+                            .reduce(function (a, b) {
+                                return parseFloat(a) + parseFloat(b);
+                            }, 0);
+
+                        // Atualiza o rodapé com o total formatado
+                        $(api.column(2).footer()).html(
+                            "R$ " +
+                                pageTotal.toLocaleString("pt-BR", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                }) +
+                                " (Total: R$ " +
+                                total.toLocaleString("pt-BR", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                }) +
+                                ")"
+                        );
+                    },
+                }); // Inicializa o DataTables
+            });
+        </script>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Notas Fiscais</h1>
+
+            <!-- Formulário para upload de arquivos XML -->
+            <h2>Upload de Arquivos XML</h2>
+            <form action="/upload" method="POST" enctype="multipart/form-data">
+                <input type="file" name="xml_files" multiple />
+                <button type="submit">Fazer Upload</button>
+            </form>
+        </div>
+        <div class="container">
+            <!-- Tabela interativa de NFes com DataTables -->
+            <h2>Notas Fiscais Salvas</h2>
+            <table id="nfeTable" class="display">
+                <thead>
+                    <tr>
+                        <th>Número da Nota</th>
+                        <th>Emitente</th>
+                        <th>Data de Emissão</th>
+                        <th>Valor Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for nfe in nfes %}
+                    <tr>
+                        <td>{{ nfe.n_nota }}</td>
+                        <td>{{ nfe.emitente.emit_nome }}</td>
+                        <td>{{ nfe.data_emit }}</td>
+                        <td>{{ nfe.valor_total}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <!-- Rodapé para exibir o total -->
+                <tfoot>
+                    <tr>
+                        <th colspan="2">Total:</th>
+                        <th id="total_value"></th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </body>
 </html>
