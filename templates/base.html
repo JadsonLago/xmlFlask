@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>NFes</title>
+
+        <!-- Incluindo o DataTables CSS -->
+        <link
+            rel="stylesheet"
+            href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css"
+        />
+
+        <!-- Incluindo jQuery (requerido pelo DataTables) -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+        <!-- Incluindo o DataTables JavaScript -->
+        <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
+        <!-- Script para inicializar o DataTables -->
+        <script>
+            $(document).ready(function () {
+                $("#nfeTable").DataTable({
+                    paging: true, // Habilita/desabilita paginação
+                    searching: true, // Habilita/desabilita pesquisa
+                    pageLength: 10, // Quantidade de registros por página
+                    ordering: true, // Habilita ordenação nas colunas
+                    language: {
+                        lengthMenu: "Mostrar _MENU_ registros por página",
+                        zeroRecords: "Nenhuma nota encontrada",
+                        info: "Página _PAGE_ de _PAGES_",
+                        infoEmpty: "Sem registros disponíveis",
+                        infoFiltered: "(filtrado de _MAX_ registros no total)",
+                        search: "Buscar:",
+                        paginate: {
+                            next: "Próximo",
+                            previous: "Anterior",
+                        },
+                    },
+                    footerCallback: function (row, data, start, end, display) {
+                        var api = this.api();
+
+                        // Calcula o total em todas as páginas
+                        var total = api
+                            .column(2) // Índice da coluna "Valor Total" (começa em 0)
+                            .data()
+                            .reduce(function (a, b) {
+                                return parseFloat(a) + parseFloat(b);
+                            }, 0);
+
+                        // Calcula o total apenas na página atual
+                        var pageTotal = api
+                            .column(2, { page: "current" })
+                            .data()
+                            .reduce(function (a, b) {
+                                return parseFloat(a) + parseFloat(b);
+                            }, 0);
+
+                        // Atualiza o rodapé com o total formatado
+                        $(api.column(2).footer()).html(
+                            "R$ " +
+                                pageTotal.toLocaleString("pt-BR", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                }) +
+                                " (Total: R$ " +
+                                total.toLocaleString("pt-BR", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                }) +
+                                ")"
+                        );
+                    },
+                }); // Inicializa o DataTables
+            });
+        </script>
+    </head>
+    <body>
+        <div id="content">{% block content %} {% endblock %}</div>
+    </body>
+</html>
