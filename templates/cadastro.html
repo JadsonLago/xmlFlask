@@ -46,32 +46,41 @@
 
     <div class="container">
         <!-- Tabela interativa de NFes com DataTables -->
-        <h4>Notas Fiscais Salvas</h5>
+        <h4>Cadastros - Emitentes</h5>
         <table id="nfeTable" class="table-sm table-hover">
             <thead>
                 <tr>
-                    <th>Número da Nota</th>
-                    <th>Emitente</th>
-                    <th>Data de Emissão</th>
-                    <th>Valor Total</th>
+                    <th>CNPJ</th>
+                    <th>Razão Social</th>
+                    <th>Insc. Estadual</th>
+                    <th>UF</th>
+                    <th>Endereço</th>
+                    <th>Cidade</th>
+                    <th>CEP</th>
                 </tr>
             </thead>
             <tbody>
-                {% for nfe in nfes %}
+                {% for emit in emits %}
                 <tr>
-                    <td>{{ nfe.n_nota }}</td>
-                    <td>{{ nfe.emitente.emit_nome }}</td>
+                    <td>{{ emit.emit_cnpj }}</td>
+                    <td>{{ emit.emit_nome }}</td>
+                    <td>{{ emit.emit_ie }}</td>
+                    <td>{{ emit.emit_uf }}</td>
+                    <td>{{ emit.emit_rua + ' ' + emit.emit_numero + ', ' + emit.emit_bairro + '.'}}</td>
+                    <td>{{ emit.emit_cidade }}</td>
+                    <td>{{ emit.emit_cep }}</td>
                     
-                    <td>{{ nfe.data_emit}}</td>
-                    <td>{{ nfe.valor_total}}</td>
                 </tr>
                 {% endfor %}
             </tbody>
             <!-- Rodapé para exibir o total -->
-            <tfoot>
+            <tfoot class="default">
                 <tr>
-                    <th colspan="2">Total:</th>
-                    <th id="total_value"></th>
+                    
+                    <th colspan="6"></th>
+                    <th>Total de registros: {{ t_reg }}</th>
+                    
+                    
                 </tr>
             </tfoot>
         </table>

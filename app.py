@@ -29,21 +29,42 @@ def upload_files():
         filename = secure_filename(file.filename)
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     
-    # Processa todos os arquivos da pasta de uploads
+    # Processa todos os arquivos da pasta de uploads    
     df = process_all_xml_files(app.config['UPLOAD_FOLDER'])
     save_to_database(df)
 
-    # Exclui os arquivos após o processamento
-    for file in files:
-        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(file.filename)))
+    if df.empty:
+        messagem = "Nenhum arquivo selecionado",400 
+        return redirect(url_for('index', messagem=messagem))
+        
+        
+        
+    else:
+        # Exclui os arquivos após o processamento
+        for file in files:
+            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(file.filename)))
 
     return redirect(url_for('index'))
 
 # Rota principal para exibir as NFes salvas
 @app.route('/')
 def index():
+    # Cria uma lista com os dados das NFes
     nfes = NFe.select(NFe, Emitente).join(Emitente)
+    
+     # Renderiza o template HTML com os dados das NFes
     return render_template('index.html', nfes=nfes)
+
+
+@app.route('/cadastro/emit/listar')
+def listar_cadastro():
+
+    emit = Emitente.select(Emitente)
+    
+    total_registros = Emitente.select().count()
+
+    
+    return render_template('cadastro.html', emits=emit, t_reg=total_registros)
 
 if __name__ == '__main__':
     create_tables()  # Certifica-se de que as tabelas estão criadas
